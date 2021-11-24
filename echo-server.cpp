@@ -5,10 +5,12 @@
 #include <iostream>
 #include <thread>
 #include <set>
+#include <mutex>
 
 using namespace std;
 
 set <int> clnt_list;
+mutex value_mutex;
 
 
 void usage() {
@@ -50,8 +52,7 @@ struct Param {
 } param;
 
 void recvThread(int sd) {
-    int num = sd -3;
-	cout << "client number " << num << " connected\n";
+	cout << "client number " << sd << " connected\n";
 	static const int BUFSIZE = 65536;
 	char buf[BUFSIZE];
 	while (true) {
@@ -62,10 +63,11 @@ void recvThread(int sd) {
 			break;
 		}
 		buf[res] = '\0';
-		cout << "message from client number " << num << " : " << buf;
+		cout << "message from client number " << sd << " : " << buf;
 		cout.flush();
 
         if (param.bcast) {
+            value_mutex.lock();
             for(auto i:clnt_list) {
                 res = send(i, buf, res, 0);
                 if (res == 0 || res == -1) {
@@ -74,6 +76,7 @@ void recvThread(int sd) {
                     break;
                 }
             }
+            value_mutex.unlock();
         }
         else if (param.echo) {
 			res = send(sd, buf, res, 0);
@@ -84,8 +87,10 @@ void recvThread(int sd) {
 			}
 		}
 	}
+    value_mutex.lock();
     clnt_list.erase(sd);
-	cout << "client number "  << num << " disconnected\n";
+    value_mutex.unlock();
+	cout << "client number "  << sd << " disconnected\n";
 	close(sd);
 }
 
