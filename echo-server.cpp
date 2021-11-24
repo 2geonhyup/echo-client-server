@@ -50,7 +50,8 @@ struct Param {
 } param;
 
 void recvThread(int sd) {
-	cout << "client number " << sd << " connected\n";
+    int num = sd -3;
+	cout << "client number " << num << " connected\n";
 	static const int BUFSIZE = 65536;
 	char buf[BUFSIZE];
 	while (true) {
@@ -61,7 +62,7 @@ void recvThread(int sd) {
 			break;
 		}
 		buf[res] = '\0';
-		cout << "message from client number " << sd << " : " << buf;
+		cout << "message from client number " << num << " : " << buf;
 		cout.flush();
 
         if (param.bcast) {
@@ -84,7 +85,7 @@ void recvThread(int sd) {
 		}
 	}
     clnt_list.erase(sd);
-	cout << "client number "  << sd << " disconnected\n";
+	cout << "client number "  << num << " disconnected\n";
 	close(sd);
 }
 
